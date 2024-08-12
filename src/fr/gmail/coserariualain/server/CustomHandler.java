@@ -6,8 +6,16 @@ import java.io.OutputStream;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+import fr.gmail.coserariualain.process.MyProcess;
+
 public class CustomHandler implements HttpHandler {
 
+	private final MyProcess proc;
+	
+	public CustomHandler(MyProcess proc) {
+		this.proc = proc;
+	}
+	
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {		
 		String requestParamValue = null;
@@ -32,9 +40,9 @@ public class CustomHandler implements HttpHandler {
 		return uri;
 	}
 	
-	private String handlePostRequest(HttpExchange exchange) {
+	private String handlePostRequest(HttpExchange exchange) throws IOException {
 		if (exchange.getRequestURI().toString().equals("/start_server")) {
-			System.out.println("Starting the server !");
+			proc.startProcess();
 		}
 		
 		

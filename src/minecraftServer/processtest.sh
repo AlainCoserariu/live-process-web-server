@@ -1,0 +1,1 @@
+echo "The process successfully worked"

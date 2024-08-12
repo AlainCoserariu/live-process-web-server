@@ -11,6 +11,6 @@ public class Main {
 		server.startServer();
 		System.out.println("HTTP server succesfully started !");
 		System.out.println("Waiting for requests...");
-	}
+		}
 
 }
