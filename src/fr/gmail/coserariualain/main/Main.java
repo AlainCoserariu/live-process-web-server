@@ -9,8 +9,6 @@ public class Main {
 	public static void main(String[] args) throws IOException {
 		Server server = new Server();
 		server.startServer();
-		System.out.println("HTTP server succesfully started !");
-		System.out.println("Waiting for requests...");
-		}
+	}
 
 }
