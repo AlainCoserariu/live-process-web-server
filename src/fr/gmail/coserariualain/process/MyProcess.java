@@ -5,13 +5,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MyProcess {
 	private final String processCommand;
 	private final String logFileName;
 
 	private boolean isAlive = false;
-	private OutputStream inputStream;
+	private OutputStream streamToProcess;
+	
+	private final List<String> commandQueue = new LinkedList<String>();
 	
 	public MyProcess(String processCommand) {
 		this.processCommand = processCommand;
@@ -36,16 +40,29 @@ public class MyProcess {
 		builder.redirectOutput(logFile);
 		
 		Process proc = builder.start();
-		inputStream = proc.getOutputStream();
+		streamToProcess = proc.getOutputStream();
 		isAlive = true;
 		
 		return 0;
 	}
 	
-	public void sendInput(String input) throws IOException {
-		Writer w = new OutputStreamWriter(inputStream);
+	private void sendInput(String input) throws IOException {
+		Writer w = new OutputStreamWriter(streamToProcess);
 		w.write(input);
-		w.close();
+		w.flush();
+	}
+	
+	public synchronized void addCommandToQueue(String command) throws IOException {
+		commandQueue.add(command);
+		sendAllCommand();
+	}
+	
+	private void sendAllCommand() throws IOException {
+		for (String command : commandQueue) {
+			sendInput(command);
+		}
+		
+		commandQueue.clear();
 	}
 	
 	public boolean getIsAlive() {

@@ -12,7 +12,7 @@ import fr.gmail.coserariualain.process.MyProcess;
 public class Server {
 	private HttpServer server;
 	private final int port = 8000;
-	private final String processCommand = "./minecraftServer/processtest.sh";
+	private final String processCommand = "bash";
 	
 	public void startServer() throws IOException { 
 		MyProcess proc = new MyProcess(processCommand);

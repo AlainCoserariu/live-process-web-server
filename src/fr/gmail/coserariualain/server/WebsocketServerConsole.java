@@ -1,5 +1,6 @@
 package fr.gmail.coserariualain.server;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,6 +15,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import fr.gmail.coserariualain.process.MyProcess;
+import fr.gmail.coserariualain.utilities.ByteConverter;
+import fr.gmail.coserariualain.utilities.FileReader;
 
 public class WebsocketServerConsole {
 	private final ServerSocket server;
@@ -98,8 +101,60 @@ public class WebsocketServerConsole {
 	}
 	
 	/**
+	 * Sending text message to the client following websocket rfc 6455
+	 * indications for the request's header.
+	 * 
+	 * @param output
+	 * @param msg
+	 * @throws IOException 
+	 */
+	private void sendMessage(OutputStream output, String msg) throws IOException {
+		byte[] byteMessage = msg.getBytes();
+		
+		// Number of byte the header contains. Sever side, it only depend on the length of the payload
+		int headerBytes = (byteMessage.length < 65536) ? ((byteMessage.length < 126) ? 2 : 4) : 10;
+		
+		// The message that will be write on the stream
+		byte[] frame = new byte[byteMessage.length + headerBytes];
+		
+		// Construction of the header, please refers to the websocket rfc 6455 to understand the following code
+		// Basically the portion of the code is only about placing bytes to the right place in the frame
+		
+		frame[0] = (byte) 129; // end = 1, rsv1, 2, 3 is ignored so = 0, optcode = txt = 0001
+		
+		byte[] payloadLen = ByteConverter.intToByteArray(byteMessage.length);
+		
+		int payloadIndice = 0;
+		if (byteMessage.length < 126) {
+			frame[1] = (byte) (byteMessage.length);
+			payloadIndice = 2;
+		} else if (byteMessage.length <= 65535) {
+			frame[1] = (byte) (126);
+			frame[2] = payloadLen[2];
+			frame[3] = payloadLen[3];
+			payloadIndice = 4;
+		} else {
+			frame[1] = (byte) 127;
+			for (int i = 0; i < 4; i++) {
+				frame[2 + i] = (byte) 0;
+			}
+			for (int i = 0; i < 4; i++) {
+				frame[6 + i] = payloadLen[i];
+			}
+			payloadIndice = 10;
+		}
+		
+		for (int i = 0; i < byteMessage.length; i++) {
+			frame[payloadIndice + i] = byteMessage[i];
+		}
+		
+		output.write(frame);
+		output.flush();
+	}
+	
+	/**
 	 * Keep the connection open with the client, send lasts line of the 
-	 * process's log file. Recieve command lines to execute.
+	 * process's log file. Receive command lines to execute.
 	 * 
 	 * @param input
 	 * @param output
@@ -110,8 +165,14 @@ public class WebsocketServerConsole {
 		boolean connected = true;
 		while (connected) {
 			if (input.available() > 0) {
-				System.out.println("New message recieved : " + decodeNextMessage(input));
+				String msg = decodeNextMessage(input);
+				proc.addCommandToQueue(msg + "\n");
 			}
+			
+			String send = FileReader.readNLastsLine(new File("minecraftServer/log.txt"), 10);
+			System.out.println("Message to send : " + send);
+			sendMessage(output, send);
+			
 			try {
 				TimeUnit.MILLISECONDS.sleep(100);
 			} catch (InterruptedException e) {
