@@ -10,6 +10,6 @@ function buttonFunction() {
 
 exampleSocket.onmessage = function (event) {
 	let consString = document.getElementById("console");
-	consString.innerHTML = "";
-	consString.innerHTML = (event.data);
+	let msg = event.data;
+	consString.innerHTML = msg.toString();
 };

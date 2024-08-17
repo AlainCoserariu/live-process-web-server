@@ -12,7 +12,7 @@ import fr.gmail.coserariualain.process.MyProcess;
 public class Server {
 	private HttpServer server;
 	private final int port = 8000;
-	private final String processCommand = "bash";
+	private final String processCommand = "cat";
 	
 	public void startServer() throws IOException { 
 		MyProcess proc = new MyProcess(processCommand);

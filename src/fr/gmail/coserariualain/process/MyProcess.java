@@ -12,8 +12,8 @@ public class MyProcess {
 	private final String processCommand;
 	private final String logFileName;
 
-	private boolean isAlive = false;
 	private OutputStream streamToProcess;
+	private Process proc = null;
 	
 	private final List<String> commandQueue = new LinkedList<String>();
 	
@@ -30,18 +30,24 @@ public class MyProcess {
 	 * 	       0 : The process has correctly started
 	 * @throws IOException
 	 */
-	public int startProcess() throws IOException {
-		if (isAlive) {
+	public int startProcess() {
+		if (proc != null && proc.isAlive()) {
 			return 1;
 		}
 		File logFile = new File(logFileName);
 					
 		ProcessBuilder builder = new ProcessBuilder(processCommand);
-		builder.redirectOutput(logFile);
+		builder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
+		builder.redirectError(ProcessBuilder.Redirect.appendTo(logFile));
 		
-		Process proc = builder.start();
+		try {
+			proc = builder.start();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(0);
+		}
 		streamToProcess = proc.getOutputStream();
-		isAlive = true;
 		
 		return 0;
 	}
@@ -66,6 +72,9 @@ public class MyProcess {
 	}
 	
 	public boolean getIsAlive() {
-		return isAlive;
+		if (proc == null) {
+			return false;
+		}
+		return proc.isAlive();
 	}
 }

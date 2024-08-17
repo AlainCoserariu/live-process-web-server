@@ -11,13 +11,11 @@ import fr.gmail.coserariualain.process.MyProcess;
 public class CustomHandler implements HttpHandler {
 
 	private final MyProcess proc;
-	private final ThreadWebsocketExchange thread;
+	private final WebsocketServerConsole thread;
 	
 	public CustomHandler(MyProcess proc) throws IOException {
-		WebsocketServerConsole consoleServer = new WebsocketServerConsole(proc);
-		
+		thread = new WebsocketServerConsole(proc);
 		this.proc = proc;		
-		this.thread = new ThreadWebsocketExchange(consoleServer);
 	}
 	
 	@Override
